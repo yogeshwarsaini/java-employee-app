@@ -39,7 +39,7 @@ pipeline {
             steps {
                 echo '🚀 Deploying app...'
                 sh """
-                    mkdir -p ${LOG_DIR}
+                   sudo mkdir -p ${LOG_DIR}
                     pkill -f '${JAR_NAME}' || true
                     sleep 3
                     nohup java -jar target/${JAR_NAME} \
