@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+         maven 'Maven-3.9'
+	 }
+
     environment {
         APP_PORT = "9090"
         JAR_NAME = "employee-app-0.0.1-SNAPSHOT.jar"
