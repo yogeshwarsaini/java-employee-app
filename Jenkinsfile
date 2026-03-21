@@ -36,18 +36,30 @@ pipeline {
         }
 
         stage('Deploy') {
-            steps {
-                echo '🚀 Deploying app...'
-                sh """
-                   mkdir -p ${LOG_DIR}
-                    pkill -f '${JAR_NAME}' || true
-                    sleep 3
-                    nohup java -jar target/${JAR_NAME} \
-                        > ${LOG_DIR}/app.log 2>&1 &
-                    echo "✅ App started PID: \$!"
-                """
-            }
-        }
+    steps {
+        echo '🚀 Deploying app...'
+        sh """
+            mkdir -p ${LOG_DIR}
+            
+            # Purana process kill karo
+            pkill -f '${JAR_NAME}' || true
+            sleep 3
+
+            # disown se process Jenkins se alag ho jaayega
+            nohup java -jar target/${JAR_NAME} \
+                > ${LOG_DIR}/app.log 2>&1 &
+            
+            # Process ko Jenkins se detach karo
+            disown \$!
+            
+            echo "✅ App started with PID: \$!"
+            sleep 5
+            
+            # Verify process chal raha hai
+            pgrep -f '${JAR_NAME}' && echo "✅ Process running!" || echo "❌ Process not found!"
+        """
+    }
+}
 
         stage('Health Check') {
             steps {
