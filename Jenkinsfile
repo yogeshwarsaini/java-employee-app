@@ -2,10 +2,12 @@ pipeline {
     agent any
 
     environment {
-        APP_PORT = "9090"
-        JAR_NAME = "employee-app-0.0.1-SNAPSHOT.jar"
-        LOG_DIR  = "/var/jenkins_home/logs/employee-app"
-        EC2_HOST = "172.31.39.25"
+        APP_PORT     = "9090"
+        JAR_NAME     = "employee-app-0.0.1-SNAPSHOT.jar"
+        IMAGE_NAME   = "employee-app"
+        CONTAINER_NAME = "java-employee-app"
+        DB_HOST      = "172.31.39.25"
+        DB_PORT      = "3307"
     }
 
     stages {
@@ -24,26 +26,32 @@ pipeline {
             }
         }
 
+        stage('Docker Build') {
+            steps {
+                echo '🐳 Docker image build...'
+                sh "docker build -t ${IMAGE_NAME}:latest ."
+            }
+        }
+
         stage('Deploy') {
             steps {
-                echo '🚀 Deploying app...'
+                echo '🚀 Deploying container...'
                 sh """
-                    mkdir -p ${LOG_DIR}
+                    # Purana container stop karo
+                    docker stop ${CONTAINER_NAME} || true
+                    docker rm ${CONTAINER_NAME} || true
 
-                    # JAR ko EC2 home directory mein copy karo
-                    cp target/${JAR_NAME} /var/jenkins_home/logs/employee-app/
+                    # Naya container start karo
+                    docker run -d \
+                        --name ${CONTAINER_NAME} \
+                        -p ${APP_PORT}:${APP_PORT} \
+                        -e SPRING_DATASOURCE_URL=jdbc:mysql://${DB_HOST}:${DB_PORT}/employeedb \
+                        -e SPRING_DATASOURCE_USERNAME=root \
+                        -e SPRING_DATASOURCE_PASSWORD=java123 \
+                        --restart always \
+                        ${IMAGE_NAME}:latest
 
-                    # EC2 pe directly run karo via docker exec host
-                    pkill -f '${JAR_NAME}' || true
-                    sleep 2
-
-                    # Background mein run karo - SETSID se process independent ho jaayega
-                    setsid java -jar /var/jenkins_home/logs/employee-app/${JAR_NAME} \
-                        > ${LOG_DIR}/app.log 2>&1 < /dev/null &
-
-                    echo "✅ App started with PID: \$!"
-                    sleep 5
-                    cat ${LOG_DIR}/app.log | tail -5
+                    echo "✅ Container started!"
                 """
             }
         }
@@ -53,7 +61,7 @@ pipeline {
                 echo '✔️ Health check...'
                 sh """
                     sleep 20
-                    curl -f http://localhost:${APP_PORT}/actuator/health
+                    curl -f http://${DB_HOST}:${APP_PORT}/actuator/health
                 """
             }
         }
@@ -65,7 +73,7 @@ pipeline {
         }
         failure {
             echo '❌ Pipeline failed!'
-            sh "cat ${LOG_DIR}/app.log | tail -30 || true"
+            sh "docker logs ${CONTAINER_NAME} || true"
         }
     }
 }
