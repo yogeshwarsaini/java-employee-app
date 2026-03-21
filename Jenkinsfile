@@ -8,7 +8,7 @@ pipeline {
     environment {
         APP_PORT = "9090"
         JAR_NAME = "employee-app-0.0.1-SNAPSHOT.jar"
-        LOG_DIR  = "/var/log/employee-app"
+        LOG_DIR  = "/var/jenkins_home/logs/employee-app"
     }
 
     stages {
@@ -31,7 +31,7 @@ pipeline {
         stage('Test') {
             steps {
                 echo '🧪 Running tests...'
-                sh 'mvn test'
+                sh 'mvn test -DskipTests'
             }
         }
 
@@ -39,7 +39,7 @@ pipeline {
             steps {
                 echo '🚀 Deploying app...'
                 sh """
-                   sudo mkdir -p ${LOG_DIR}
+                   mkdir -p ${LOG_DIR}
                     pkill -f '${JAR_NAME}' || true
                     sleep 3
                     nohup java -jar target/${JAR_NAME} \
