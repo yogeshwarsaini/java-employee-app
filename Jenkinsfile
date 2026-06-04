@@ -42,7 +42,7 @@ pipeline {
             }
         }
 
-        stage('Health Check') {
+        stage('Health Check krna hai ') {
             steps {
                 sh """
                     sleep 20
