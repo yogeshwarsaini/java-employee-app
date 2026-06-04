@@ -53,7 +53,7 @@ pipeline {
     }
 
     post {
-        success { echo '✅ Deployment successful!' }
+        success { echo '✅ Deployment successful hai !' }
         failure { echo '❌ Pipeline failed!' }
     }
 }
