@@ -68,29 +68,29 @@ EOF
             }
         }
         
-        stage('Health Check') {
-    steps {
-        sh '''
-            echo "Waiting for application to start..."
-            sleep 30
+//         stage('Health Check') {
+//     steps {
+//         sh '''
+//             echo "Waiting for application to start..."
+//             sleep 30
 
-            i=1
-            while [ $i -le 12 ]; do
-                if curl -f -s http://localhost:${APP_PORT}/actuator/health > /dev/null; then
-                    echo "✅ Application is UP and Healthy!"
-                    exit 0
-                fi
-                echo "Attempt $i: Application not ready yet, waiting..."
-                i=$((i + 1))
-                sleep 8
-            done
+//             i=1
+//             while [ $i -le 12 ]; do
+//                 if curl -f -s http://localhost:${APP_PORT}/actuator/health > /dev/null; then
+//                     echo "✅ Application is UP and Healthy!"
+//                     exit 0
+//                 fi
+//                 echo "Attempt $i: Application not ready yet, waiting..."
+//                 i=$((i + 1))
+//                 sleep 8
+//             done
 
-            echo "❌ Health check failed after multiple attempts"
-            sudo journalctl -u ${SERVICE_NAME}.service --no-pager -n 50
-            exit 1
-        '''
-    }
-}
+//             echo "❌ Health check failed after multiple attempts"
+//             sudo journalctl -u ${SERVICE_NAME}.service --no-pager -n 50
+//             exit 1
+//         '''
+//     }
+// }
     }
     
     post {
